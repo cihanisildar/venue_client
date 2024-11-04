@@ -6,6 +6,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.gradient-border {
+  border-image: linear-gradient(to right, #FCCAC2, #FF7449, #FFB949) 1;
+  border-radius: 8px
+}
+
+
 /* @layer base {
   :root {
     --sidebar-background: 0 0% 98%;

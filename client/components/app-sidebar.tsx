@@ -13,6 +13,8 @@ import {
   Bell,
   FileText,
   MapPin,
+  LucideProps,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -26,21 +28,31 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
+import { logout } from "@/actions/auth/auth.actions";
+
+interface MenuItem {
+  title: string;
+  url?: string;
+  icon: React.ForwardRefExoticComponent<
+    Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
+  >;
+  onClick?: () => void; // Optional onClick property
+}
 
 // Menu items for different user roles
-const commonItems = [
+const commonItems: MenuItem[] = [
   { title: "Home", url: "/", icon: Home },
   { title: "Search", url: "#", icon: Search },
   { title: "Inbox", url: "#", icon: Inbox },
 ];
 
-const customerItems = [
+const customerItems: MenuItem[] = [
   { title: "My Preferences", url: "#", icon: Settings },
   { title: "My Reviews", url: "#", icon: Star },
   { title: "My Rewards", url: "#", icon: DollarSign },
 ];
 
-const ownerManagerItems = [
+const ownerManagerItems: MenuItem[] = [
   { title: "My Venues", url: "#", icon: Coffee },
   { title: "Menu Management", url: "#", icon: Utensils },
   { title: "Events", url: "#", icon: Calendar },
@@ -48,7 +60,7 @@ const ownerManagerItems = [
   { title: "Updates", url: "#", icon: Bell },
 ];
 
-const adminItems = [
+const adminItems: MenuItem[] = [
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Venue Approvals", url: "#", icon: FileText },
   { title: "Reports", url: "#", icon: FileText },
@@ -65,17 +77,40 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
   const renderMenuItems = (items: typeof commonItems) =>
     items.map((item) => (
       <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton 
-          asChild 
-          className={pathname === item.url ? "bg-[#F9D374] rounded-[8px] hover:bg-[#F9D374]/90" : ""}
+        <SidebarMenuButton
+          asChild
+          className={
+            pathname === item.url
+              ? "bg-[#F9D374] rounded-[8px] hover:bg-[#F9D374]/90"
+              : ""
+          }
         >
-          <a href={item.url}>
+          <a
+            href={item.url}
+            className="cursor-pointer"
+            onClick={(e) => {
+              // Prevent default navigation if onClick is defined
+              if (item.onClick) {
+                e.preventDefault(); // Prevent default link behavior
+                item.onClick(); // Call the onClick function
+              }
+            }}
+          >
             <item.icon className="h-4 w-4 mr-2" />
             <span className="text-[#333333]">{item.title}</span>
           </a>
         </SidebarMenuButton>
       </SidebarMenuItem>
     ));
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = "/"; // Redirect after logout
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
 
   return (
     <Sidebar>
@@ -119,7 +154,16 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {renderMenuItems([
-                { title: "Settings", url: "/settings", icon: Settings },
+                {
+                  title: "Settings",
+                  url: "/dashboard/settings",
+                  icon: Settings,
+                },
+                {
+                  title: "Logout",
+                  icon: LogOut,
+                  onClick: handleLogout,
+                }, // Add logout item
               ])}
             </SidebarMenu>
           </SidebarGroupContent>

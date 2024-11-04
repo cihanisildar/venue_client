@@ -9,6 +9,11 @@ export function middleware(request: NextRequest) {
   console.log("vn_auth_token:", authToken);
   console.log("vn_refresh_token:", refreshToken);
 
+   // Redirect to "/sign-up" if the user tries to access "/" without tokens
+   if (request.nextUrl.pathname === "/" && (!authToken || !refreshToken)) {
+    return NextResponse.redirect(new URL("/sign-up", request.url));
+  }
+  
   // Redirect from root "/" to "/dashboard" if authenticated
   if (request.nextUrl.pathname === "/" && authToken && refreshToken) {
     return NextResponse.redirect(new URL("/dashboard", request.url));

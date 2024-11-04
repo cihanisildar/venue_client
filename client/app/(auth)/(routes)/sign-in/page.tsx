@@ -39,6 +39,7 @@ async function sendRequest(url: string, { arg }: { arg: FormData }) {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify(arg),
   }).then((res) => res.json());
 }
