@@ -11,6 +11,11 @@ const config: Config = {
     extend: {
       fontFamily: {
         playfair: ["Playfair Display", "serif"],
+        nanum: ["Nanum Myeongjo", "serif"], // Added Nanum Myeongjo
+        satisfy: ["Satisfy", "cursive"], // Added Satisfy
+        lobster: ["Lobster", "cursive"], // Added Lobster
+        libre: ["Libre Baskerville", "serif"], // Added Libre Baskerville
+        playwrite: ["Playwrite England SemiJoined", "serif"], // Added Playwrite England SemiJoined
       },
       colors: {
         background: "hsl(var(--background))",

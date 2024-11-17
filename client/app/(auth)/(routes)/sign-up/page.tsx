@@ -84,7 +84,7 @@ export default function SignupPage() {
       const { confirmPassword, acceptTerms, ...registerData } = data;
       console.log("Sending registration data:", registerData);
       const result = await trigger(registerData);
-
+      
       if (result.error) {
         console.error(result.error);
         return;
@@ -109,7 +109,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center gap-16 bg-[#F5F2EB] px-8">
+    <div className="min-h-screen w-full flex items-center justify-center gap-16 bg-[#025951] px-8">
       <Card className="w-[440px] border-none text-center overflow-hidden bg-white py-4 px-6 rounded-[24px]">
         <CardContent className="px-4">
           <CardHeader className="p-0 mb-4 w-full flex flex-col items-center justify-center gap-2">

@@ -91,7 +91,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center gap-16 bg-[#F5F2EB] px-8">
+    <div className="min-h-screen w-full flex items-center justify-center gap-16 bg-[#025951] px-8">
       <Card className="w-[400px] border-none text-center overflow-hidden bg-white px-4 py-6 rounded-[24px]">
         <CardContent className="px-4">
           <CardHeader className="p-0 mb-4 w-full flex flex-col items-center justify-center gap-2">

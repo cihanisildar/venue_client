@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { logout } from "@/actions/auth/auth.actions";
+import logoIcon from "@/public/heron_18024299.png";
+import Image from "next/image";
 
 interface MenuItem {
   title: string;
@@ -41,7 +43,7 @@ interface MenuItem {
 
 // Menu items for different user roles
 const commonItems: MenuItem[] = [
-  { title: "Home", url: "/", icon: Home },
+  { title: "Home", url: "/dashboard", icon: Home },
   { title: "Search", url: "#", icon: Search },
   { title: "Inbox", url: "#", icon: Inbox },
 ];
@@ -81,8 +83,8 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
           asChild
           className={
             pathname === item.url
-              ? "bg-[#F9D374] rounded-[8px] hover:bg-[#F9D374]/90"
-              : ""
+              ? "bg-[#FCCAC2] rounded-[8px] hover:bg-[#FCCAC2]/90"
+              : "hover:bg-slate-100 rounded-[8px] transition-all duration-75 ease-in-out"
           }
         >
           <a
@@ -96,8 +98,20 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
               }
             }}
           >
-            <item.icon className="h-4 w-4 mr-2" />
-            <span className="text-[#333333]">{item.title}</span>
+            <item.icon
+              className={`h-4 w-4 mr-2 ${
+                pathname === item.url ? "text-white" : "text-[#333333]"
+              }`}
+            />{" "}
+            <span
+              className={`${
+                pathname === item.url
+                  ? "text-white font-semibold"
+                  : "text-[#333333]"
+              }`}
+            >
+              {item.title}
+            </span>{" "}
           </a>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -115,13 +129,24 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarContent>
+      <div className="text-2xl h-[50px] font-playwrite flex items-center px-4 border-b-[1px] border-b-slate-300">
+  <Image
+    src={logoIcon}
+    alt="Venue Logo"
+    className="h-6 w-6 mr-2"
+  />{" "}
+  {/* Add image here */}
+  <span className="bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+    Venue
+  </span>{" "}
+</div>
+        {/* Application name */}
         <SidebarGroup>
           <SidebarGroupLabel>General</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{renderMenuItems(commonItems)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
         {userRole === "CUSTOMER" && (
           <SidebarGroup>
             <SidebarGroupLabel>Customer</SidebarGroupLabel>
@@ -130,7 +155,6 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
         {(userRole === "CAFE_OWNER" || userRole === "VENUE_MANAGER") && (
           <SidebarGroup>
             <SidebarGroupLabel>Management</SidebarGroupLabel>
@@ -139,7 +163,6 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
         {userRole === "ADMIN" && (
           <SidebarGroup>
             <SidebarGroupLabel>Administration</SidebarGroupLabel>
@@ -148,7 +171,6 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
         <SidebarGroup>
           <SidebarGroupLabel>Account</SidebarGroupLabel>
           <SidebarGroupContent>

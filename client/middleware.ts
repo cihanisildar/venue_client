@@ -9,11 +9,20 @@ export function middleware(request: NextRequest) {
   console.log("vn_auth_token:", authToken);
   console.log("vn_refresh_token:", refreshToken);
 
-   // Redirect to "/sign-up" if the user tries to access "/" without tokens
-   if (request.nextUrl.pathname === "/" && (!authToken || !refreshToken)) {
+  // Redirect to /refresh-auth if on "/" or "/dashboard" with only a refresh token (no auth token)
+  if (
+    (request.nextUrl.pathname === "/" || request.nextUrl.pathname.startsWith("/dashboard")) &&
+    !authToken &&
+    refreshToken
+  ) {
+    return NextResponse.redirect(new URL("/refresh-auth", request.url));
+  }
+
+  // Redirect to "/sign-up" if the user tries to access "/" without tokens
+  if (request.nextUrl.pathname === "/" && (!authToken || !refreshToken)) {
     return NextResponse.redirect(new URL("/sign-up", request.url));
   }
-  
+
   // Redirect from root "/" to "/dashboard" if authenticated
   if (request.nextUrl.pathname === "/" && authToken && refreshToken) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -21,7 +30,6 @@ export function middleware(request: NextRequest) {
 
   // Check if the request path starts with /dashboard
   if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    // Check if both tokens are present and valid
     if (!authToken || !refreshToken) {
       // Redirect to /sign-in if not authenticated
       return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -54,7 +62,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: ["/", "/dashboard/:path*", "/sign-in", "/sign-up"],
 };

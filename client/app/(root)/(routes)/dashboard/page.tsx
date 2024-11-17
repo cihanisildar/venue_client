@@ -22,7 +22,7 @@ interface HomePageProps {
 
 const CustomerHome: React.FC = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    <Card className="border-slate-300 hover:bg-yellow-300 transition-all duration-150 ease-in-out cursor-pointer">
+    <Card className="border-slate-300 hover:bg-[#FFF7ED] transition-all duration-150 ease-in-out cursor-pointer">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-8">
         <CardTitle className="text-sm font-medium">Total Rewards</CardTitle>
         <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -33,7 +33,7 @@ const CustomerHome: React.FC = () => (
         <p className="text-xs text-muted-foreground">+20 from last visit</p>
       </CardContent>
     </Card>
-    <Card className="border-slate-300 hover:bg-yellow-300 transition-all duration-150 ease-in-out cursor-pointer">
+    <Card className="border-slate-300 hover:bg-[#FFF7ED] transition-all duration-150 ease-in-out cursor-pointer">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-8">
         <CardTitle className="text-sm font-medium">Recent Reviews</CardTitle>
         <Star className="h-4 w-4 text-muted-foreground" />
@@ -46,7 +46,7 @@ const CustomerHome: React.FC = () => (
         </p>
       </CardContent>
     </Card>
-    <Card className="border-slate-300 hover:bg-yellow-300 transition-all duration-150 ease-in-out cursor-pointer">
+    <Card className="border-slate-300 hover:bg-[#FFF7ED] transition-all duration-150 ease-in-out cursor-pointer">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-8">
         <CardTitle className="text-sm font-medium">Favorite Cafes</CardTitle>
         <Coffee className="h-4 w-4 text-muted-foreground" />
@@ -204,20 +204,7 @@ export default function Component({ userRole, userName }: HomePageProps) {
           {/* {userName} */}
         </h2>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        
-        <Card className="col-span-4 border-slate-300">
-          <CardHeader className="px-4">
-            <CardTitle>Your {roleTitle} Dashboard</CardTitle>
-            <CardDescription>
-              Here's what's happening in your world today.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4">
-            <HomeComponent />
-          </CardContent>
-        </Card>
-      </div>
+      <HomeComponent />
     </div>
   );
 }
