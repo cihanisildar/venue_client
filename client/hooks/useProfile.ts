@@ -20,7 +20,8 @@ const useUserProfile = () => {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "X-Gateway-Secret": process.env.NEXT_PUBLIC_API_GATEWAY_SECRET || "",
+            "X-Gateway-Secret":
+              process.env.NEXT_PUBLIC_API_GATEWAY_SECRET || "",
           },
         });
 

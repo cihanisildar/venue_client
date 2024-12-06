@@ -49,7 +49,7 @@ const commonItems: MenuItem[] = [
 ];
 
 const customerItems: MenuItem[] = [
-  { title: "My Preferences", url: "#", icon: Settings },
+  { title: "My Preferences", url: "/dashboard/preferences", icon: Settings },
   { title: "My Reviews", url: "#", icon: Star },
   { title: "My Rewards", url: "#", icon: DollarSign },
 ];

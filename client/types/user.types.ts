@@ -3,7 +3,8 @@ export interface IUserProfile {
   email: string;
   username: string;
   name?: string | null;
-  age: number | null;
+  surname?: string | null;
+  birthdate: Date | null;
   phoneNumber: string | null;
   role: UserRole;
   reliabilityScore: number;
@@ -38,18 +39,45 @@ export enum UserRole {
   ADMIN = "ADMIN",
 }
 
-export enum TimePreference {
-  EARLY_MORNING = "EARLY_MORNING",
-  MORNING = "MORNING",
-  AFTERNOON = "AFTERNOON",
-  EVENING = "EVENING",
-  NIGHT = "NIGHT",
-  ANY = "ANY",
+export type NoisePreference = "SILENT" | "QUIET" | "MODERATE" | "LIVELY" | null;
+export type TimePreference =
+  | "EARLY_MORNING"
+  | "MORNING"
+  | "AFTERNOON"
+  | "EVENING"
+  | "NIGHT"
+  | "ANY"
+  | null;
+
+export type FrontendNoisePreference = "QUIET" | "MODERATE" | "LOUD" | null;
+export type FrontendTimePreference =
+  | "MORNING"
+  | "AFTERNOON"
+  | "EVENING"
+  | "NIGHT"
+  | "ANY"
+  | null;
+
+export function mapNoisePreference(
+  backendNoiseLevel: "SILENT" | "QUIET" | "MODERATE" | "LIVELY" | null
+): FrontendNoisePreference {
+  switch (backendNoiseLevel) {
+    case "SILENT":
+      return "QUIET"; // Map "SILENT" to "QUIET"
+    case "LIVELY":
+      return "LOUD"; // Map "LIVELY" to "LOUD"
+    default:
+      return backendNoiseLevel; // "QUIET", "MODERATE", or null
+  }
 }
 
-export enum NoisePreference {
-  SILENT = "SILENT",
-  QUIET = "QUIET",
-  MODERATE = "MODERATE",
-  LIVELY = "LIVELY",
+export function mapTimePreference(
+  backendTimePreference: TimePreference
+): FrontendTimePreference {
+  switch (backendTimePreference) {
+    case "EARLY_MORNING":
+      return "MORNING"; // Map "EARLY_MORNING" to "MORNING"
+    default:
+      return backendTimePreference; // Return "MORNING", "AFTERNOON", "EVENING", "NIGHT", "ANY", or null as-is
+  }
 }

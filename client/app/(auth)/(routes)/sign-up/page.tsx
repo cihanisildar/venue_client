@@ -45,7 +45,13 @@ type FormData = z.infer<typeof formSchema>;
 
 async function sendRequest(
   url: string,
-  { arg }: { arg: Omit<FormData, "confirmPassword" | "acceptTerms"> }
+  {
+    arg,
+  }: {
+    arg:
+      | Omit<FormData, "confirmPassword" | "acceptTerms">
+      | { id: string; email: string; username: string };
+  }
 ) {
   return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
     method: "POST",
@@ -62,10 +68,11 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { trigger, isMutating } = useSWRMutation(
-    "/api/auth/register",
-    sendRequest
-  );
+  const { trigger: registerTrigger, isMutating: isRegistering } =
+    useSWRMutation("/api/auth/register", sendRequest);
+
+  const { trigger: profileTrigger, isMutating: isUpdatingProfile } =
+    useSWRMutation("/api/user/profile", sendRequest);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -82,17 +89,28 @@ export default function SignupPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const { confirmPassword, acceptTerms, ...registerData } = data;
+
       console.log("Sending registration data:", registerData);
-      const result = await trigger(registerData);
-      
-      if (result.error) {
-        console.error(result.error);
+
+      // Trigger the registration API
+      const registerResult = await registerTrigger(registerData);
+
+      if (!registerResult || registerResult.error) {
+        console.error(
+          "Registration failed:",
+          registerResult?.error || "Unknown error"
+        );
         return;
       }
 
+      const { id, email, username } = registerResult.data.user;
+
+      console.log("Registration successful:", { id, email, username });
+
+      // Redirect to sign-in page
       router.push("/sign-in");
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("An unexpected error occurred during registration:", error);
     }
   };
 
@@ -217,11 +235,17 @@ export default function SignupPage() {
                   className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   I agree to the{" "}
-                  <Link href="/terms" className="text-[#28A745] hover:underline">
+                  <Link
+                    href="/terms"
+                    className="text-[#28A745] hover:underline"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-[#28A745] hover:underline">
+                  <Link
+                    href="/privacy"
+                    className="text-[#28A745] hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                 </label>
@@ -235,14 +259,19 @@ export default function SignupPage() {
 
             <Button
               type="submit"
-              disabled={!isFormValid() || form.formState.isSubmitting || isMutating}
+              disabled={
+                !isFormValid() ||
+                form.formState.isSubmitting ||
+                isRegistering ||
+                isUpdatingProfile
+              }
               className={`w-full rounded-[8px] py-4 text-sm ${
                 isFormValid()
                   ? "bg-[#28A745] hover:bg-[#28A745]/80"
                   : "bg-[#AED6B3] cursor-not-allowed"
               } text-white`}
             >
-              {isMutating ? "Signing up..." : "Sign Up"}
+              {isRegistering || isUpdatingProfile ? "Signing up..." : "Sign Up"}
             </Button>
 
             <div className="relative my-4">
@@ -275,7 +304,10 @@ export default function SignupPage() {
 
             <p className="text-xs text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/sign-in" className="text-black font-bold hover:underline">
+              <Link
+                href="/sign-in"
+                className="text-black font-bold hover:underline"
+              >
                 Sign In
               </Link>
             </p>

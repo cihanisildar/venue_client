@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,28 +20,35 @@ const userSchema = z.object({
     .nonempty("Email is required"),
   username: z.string().min(3, "Username must be at least 3 characters long"),
   name: z.string().optional(),
-  age: z
-    .number()
-    .nonnegative("Age must be a positive number")
+  surname: z.string().optional(),
+  birthdate: z
+    .string()
+    .nullable()
     .optional()
-    .nullable(),
+    .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date format"),
   phoneNumber: z.string().optional(),
   reliabilityScore: z.number().nonnegative().nullable().optional(),
   role: z.string(),
 });
 
-// TypeScript type inference from the Zod schema
+// TypeScript types
 type UserFormValues = z.infer<typeof userSchema>;
+
+// Type for tracking changes
+type UserFormChanges = Partial<UserFormValues>;
 
 export default function SettingsPage() {
   const { userProfile, loading, error } = useUserProfile();
   const [toastShown, setToastShown] = useState(false);
+  const [initialValues, setInitialValues] = useState<UserFormValues | null>(
+    null
+  );
 
   const {
     register,
     handleSubmit,
-    setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -50,30 +56,39 @@ export default function SettingsPage() {
       email: "",
       username: "",
       name: "",
-      age: null,
+      surname: "",
+      birthdate: null,
       phoneNumber: "",
       reliabilityScore: null,
       role: "",
     },
   });
 
+  const formValues = watch();
+
   useEffect(() => {
     if (userProfile) {
-      reset({
+      const formattedProfile = {
         email: userProfile.email || "",
         username: userProfile.username || "",
         name: userProfile.name || "",
-        age: userProfile.age || null,
+        surname: userProfile.surname || "",
+        birthdate: userProfile.birthdate
+          ? new Date(userProfile.birthdate).toISOString().split("T")[0]
+          : null,
         phoneNumber: userProfile.phoneNumber || "",
         reliabilityScore: userProfile.reliabilityScore || null,
         role: userProfile.role || "GUEST",
-      });
+      };
 
-      // Show info toast reminder if name, age, and phone number are empty
+      setInitialValues(formattedProfile);
+      reset(formattedProfile);
+
       if (
         !toastShown &&
         !userProfile.name &&
-        (userProfile.age === null || userProfile.age === undefined) &&
+        (userProfile.birthdate === null ||
+          userProfile.birthdate === undefined) &&
         !userProfile.phoneNumber
       ) {
         toast(
@@ -91,7 +106,7 @@ export default function SettingsPage() {
           ),
           {
             duration: 6000,
-            icon: null, // Disable default icon
+            icon: null,
             style: {
               borderRadius: "8px",
               background: "#f0f9ff",
@@ -104,16 +119,73 @@ export default function SettingsPage() {
     }
   }, [userProfile, reset, toastShown]);
 
+  const getChangedFields = (currentValues: UserFormValues): UserFormChanges => {
+    if (!initialValues) return {};
+
+    const changedFields: UserFormChanges = {};
+
+    // Check each field explicitly with proper type checking
+    if (currentValues.email !== initialValues.email) {
+      changedFields.email = currentValues.email;
+    }
+
+    if (currentValues.username !== initialValues.username) {
+      changedFields.username = currentValues.username;
+    }
+
+    if (currentValues.name !== initialValues.name) {
+      changedFields.name = currentValues.name;
+    }
+
+    if (currentValues.surname !== initialValues.surname) {
+      changedFields.surname = currentValues.surname;
+    }
+
+    if (currentValues.birthdate !== initialValues.birthdate) {
+      changedFields.birthdate = currentValues.birthdate;
+    }
+
+    if (currentValues.phoneNumber !== initialValues.phoneNumber) {
+      changedFields.phoneNumber = currentValues.phoneNumber;
+    }
+
+    if (currentValues.reliabilityScore !== initialValues.reliabilityScore) {
+      changedFields.reliabilityScore = currentValues.reliabilityScore;
+    }
+
+    if (currentValues.role !== initialValues.role) {
+      changedFields.role = currentValues.role;
+    }
+
+    return changedFields;
+  };
+
   const onSubmit = async (data: UserFormValues) => {
+    const changedFields = getChangedFields(data);
+
+    // If no fields have changed, show a message and return
+    if (Object.keys(changedFields).length === 0) {
+      // toast.info("No changes to save");
+      return;
+    }
+
+    // Format birthdate if it's included in changed fields
+    const formattedChanges: UserFormChanges = {
+      ...changedFields,
+      birthdate: changedFields.birthdate
+        ? new Date(changedFields.birthdate).toISOString()
+        : changedFields.birthdate,
+    };
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
         {
-          method: "PUT",
+          method: "PUT", // Changed to PATCH since we're doing a partial update
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(changedFields),
           credentials: "include",
         }
       );
@@ -125,25 +197,17 @@ export default function SettingsPage() {
 
       const updatedProfile = await response.json();
       toast.success("Profile updated successfully!");
-      console.log("Updated Profile:", updatedProfile); // Optional for debugging
+
+      // Update initial values with the new data
+      if (initialValues) {
+        setInitialValues({
+          ...initialValues,
+          ...formattedChanges,
+        });
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(error instanceof Error ? error.message : "An error occurred");
-    }
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "CUSTOMER":
-        return "bg-blue-500";
-      case "CAFE_OWNER":
-        return "bg-green-500";
-      case "VENUE_MANAGER":
-        return "bg-purple-500";
-      case "ADMIN":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
     }
   };
 
@@ -159,7 +223,6 @@ export default function SettingsPage() {
     <div className="mx-auto px-8 py-4">
       {/* Toast Container */}
       <Toaster position="top-right" />
-
       <div className="w-full flex items-center justify-between">
         <h2 className="text-3xl font-bold">Profile Information</h2>
         <div className="flex items-center mb-6 w-fit">
@@ -175,6 +238,7 @@ export default function SettingsPage() {
       <Card className="border-none">
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 py-4 px-6 mt-4">
+            {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -187,6 +251,8 @@ export default function SettingsPage() {
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
             </div>
+
+            {/* Username Field */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
@@ -200,29 +266,64 @@ export default function SettingsPage() {
                 </p>
               )}
             </div>
+
+            {/* Name Field */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="name"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  First Name
+                </Label>
+                <Input
+                  id="name"
+                  {...register("name")}
+                  className="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="surname"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Last Name
+                </Label>
+                <Input
+                  id="surname"
+                  {...register("surname")}
+                  className="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+                {errors.surname && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.surname.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Birth Date Field */}
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="birthdate">Birth Date</Label>
               <Input
-                id="name"
-                {...register("name")}
+                id="birthdate"
+                {...register("birthdate")}
+                type="date"
                 className="rounded-[4px] border-slate-300"
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm">{errors.name.message}</p>
+              {errors.birthdate && (
+                <p className="text-red-500 text-sm">
+                  {errors.birthdate.message}
+                </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
-              <Input
-                id="age"
-                {...register("age", { valueAsNumber: true })}
-                type="number"
-                className="rounded-[4px] border-slate-300"
-              />
-              {errors.age && (
-                <p className="text-red-500 text-sm">{errors.age.message}</p>
-              )}
-            </div>
+
+            {/* Phone Number Field */}
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
               <Input
@@ -237,6 +338,8 @@ export default function SettingsPage() {
               )}
             </div>
           </CardContent>
+
+          {/* Submit Button */}
           <CardFooter className="w-full flex items-center justify-end mt-4">
             <Button type="submit" variant={"save"}>
               Save Changes
@@ -247,3 +350,18 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+const getRoleBadgeColor = (role: string) => {
+  switch (role) {
+    case "CUSTOMER":
+      return "bg-blue-500";
+    case "CAFE_OWNER":
+      return "bg-green-500";
+    case "VENUE_MANAGER":
+      return "bg-purple-500";
+    case "ADMIN":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
